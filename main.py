@@ -12,10 +12,8 @@ def get_parking_data():
     result = firebase1.get('/', None)
     lines = json.dumps(result)
     return lines
-    # with open('result.txt','w') as f:
-    #     f.write(lines)
 
 if __name__ == '__main__':
-    # port = int(os.environ.get("PORT", 5000))
-    # app.run(host='0.0.0.0', port=port)
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+    # app.run(debug=True)
