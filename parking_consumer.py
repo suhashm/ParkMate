@@ -1,7 +1,7 @@
 from kafka import KafkaConsumer
 
 # To consume messages
-consumer = KafkaConsumer('park',
+consumer = KafkaConsumer('test-park',
                          group_id='my_group',
                          bootstrap_servers=['ec2-52-3-61-194.compute-1.amazonaws.com:9092'])
 for message in consumer:

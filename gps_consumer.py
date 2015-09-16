@@ -1,7 +1,7 @@
 from kafka import KafkaConsumer
 
 # To consume messages
-consumer = KafkaConsumer('gps',
+consumer = KafkaConsumer('test-gps',
                          group_id='my_group',
                          bootstrap_servers=['ec2-52-3-61-194.compute-1.amazonaws.com:9092'])
 for message in consumer:
