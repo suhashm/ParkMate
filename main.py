@@ -25,7 +25,6 @@ def get_parking_data():
         streets[i]['points'] = streets[i]['points'][:2]
     lines = json.dumps(result)
     parking_data_producer(lines)
-    # gps_data_producer()
     return lines
 
 @app.route("/save_parking_data", methods=['GET'])

@@ -1,3 +1,5 @@
+"""Submit the program using ./bin/spark-submit --master spark://<Hostname>:7077 examples/a.py """
+
 from pyspark import SparkContext, SparkConf
 import json
 import datetime
