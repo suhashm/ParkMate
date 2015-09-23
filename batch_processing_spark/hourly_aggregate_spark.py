@@ -1,14 +1,12 @@
 from pyspark import SparkContext, SparkConf
 import json
-#import extract_time
-
 import datetime
+
 def write_to_cassandra(input):
     from cassandra.cluster import Cluster
     cluster = Cluster(['52.20.47.196'])
     session = cluster.connect('playground')
     stmt = "INSERT INTO test_hourly2 (event_time, garage_name, availability) VALUES (%s, %s,%s)"
-    #print input[0][1]
     session.execute(stmt, parameters=[str(input[0][0]), input[0][1], str(input[1])])
     return input[0][1]
 
@@ -37,7 +35,6 @@ def create_tuple(r):
     if '_geofire' in garages:
         garages.pop('_geofire')
     for i in garages:
-	#print i
         res.append(((int(formatted_time), i.replace(" ","_").lower()), garages[i]['open_spaces']))
     return res
 
