@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask.ext.cors import CORS
 from firebase import firebase
-import json, os
+import json, os, random
 from kafka_producer.parking_producer import parking_data_producer
 from kafka_producer.gps_producer import gps_data_producer
 
@@ -12,6 +12,17 @@ cors = CORS(app, allow_headers='Content-Type')
 def get_parking_data():
     firebase1 = firebase.FirebaseApplication('https://publicdata-parking.firebaseio.com', None)
     result = firebase1.get('/', None)
+
+    # format the input data
+    streets = result['san_francisco']['streets']
+
+    # remove geofire
+    if '_geofire' in streets:
+        streets.pop('_geofire')
+    
+    for i in streets:
+        streets[i]['open_spaces'] = random.randint(0,5)
+        streets[i]['points'] = streets[i]['points'][:2]
     lines = json.dumps(result)
     parking_data_producer(lines)
     gps_data_producer()
