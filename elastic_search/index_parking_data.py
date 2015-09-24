@@ -1,6 +1,6 @@
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
-import json, os
+import json, os, time
 
 # connect to the elasticsearch instance
 es = Elasticsearch("http://ec2-52-3-61-194.compute-1.amazonaws.com:9200")
@@ -96,12 +96,18 @@ bulk_data1.append(b)
 bulk_data1.append(bb)
 bulk_data1.append(bbb)
 
-# q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"100km","location":{"lat":46.884106,"lon":-71.377042}}}}}}'
 q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"100km","location":{"lat":46.884106,"lon":-71.377042}}}}}}'
+# q = '{"query":{"match_all":{}},"script_fields":{"distance":{"params":{"lat":46.884106,"lon":-71.377042},"script":"doc[\u0027location\u0027].distanceInKm(lat,lon)"}},"filter":{"geo_distance":{"distance":"100km","location":{"lat":46.884106,"lon":-71.377042}}}}'
 # q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"100km","location":{"lat":12.969773,"lon":77.597337}}}}}}'
 # results = helpers.bulk(es, bulk_data1, index='geotest', doc_type='geotest', refresh=True)
-results = helpers.bulk(es, bulk_data1, index=INDEX_NAME, doc_type=INDEX_NAME, refresh=True)
+# results = helpers.bulk(es, bulk_data1, index=INDEX_NAME, doc_type=INDEX_NAME, refresh=True)
+for i in range(len(bulk_data1)):
+    es.index(index=INDEX_NAME, doc_type=INDEX_NAME, body=bulk_data1[i], refresh=True)
+    # es.create(index=INDEX_NAME, doc_type=INDEX_NAME, body=bulk_data1[i])
 
+print "done inserting documents"
+# time.sleep(2)
+print "now query"
 res = es.search(index = INDEX_NAME, size=5, body=q)
 print json.dumps(res, indent=2)
 print ""
