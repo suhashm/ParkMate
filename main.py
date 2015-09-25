@@ -1,12 +1,30 @@
 from flask import Flask, jsonify, request
 from flask.ext.cors import CORS
 from firebase import firebase
-import json, os, random
+import json, os, random, datetime, time
 from kafka_producer.parking_producer import parking_data_producer
 from kafka_producer.gps_producer import gps_data_producer
 
 app = Flask(__name__)
 cors = CORS(app, allow_headers='Content-Type')
+
+def conver_to_unix_time(ctime):
+    time_list = ctime.split()
+    # convert to unix ctime 'Tue Sep 15 15:16:58 2015'
+
+    # convert to ctime - this is for hourly analysis and hence ignoring
+    time_list = time_list[ :-2]
+
+    temp = time_list[-1]
+    time_list[-1] = time_list[-2]
+    time_list[-2] = temp
+
+    new_time = " ".join(time_list)
+    b = datetime.datetime.strptime(new_time, "%a %b %d %H:%M:%S %Y")
+    formatted_time = ""
+    formatted_time += str(b.year)+str(b.month).zfill(2)+str(b.day).zfill(2)+'-'+str(b.hour).zfill(2)+str(b.minute).zfill(2)+str(b.second).zfill(2)
+    return formatted_time
+
 
 @app.route("/get_parking_data", methods=['GET'])
 def get_parking_data():
@@ -23,6 +41,10 @@ def get_parking_data():
     for i in streets:
         streets[i]['open_spaces'] = random.randint(0,5)
         streets[i]['points'] = streets[i]['points'][:2]
+
+    # create timestamp YYYYMMDD-HHmmss
+    result['san_francisco']['_updated'] = conver_to_unix_time(result['san_francisco']['_updated'])
+
     lines = json.dumps(result)
     parking_data_producer(lines)
     return lines

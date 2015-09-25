@@ -6,4 +6,5 @@ producer = SimpleProducer(kafka)
 
 def parking_data_producer(parking_json):
     # Note that the application is responsible for encoding messages to type bytes
-    producer.send_messages(b'test-park', parking_json)
+    # producer.send_messages(b'test-park', parking_json)
+    producer.send_messages(b'parking_sensor_topic', parking_json)

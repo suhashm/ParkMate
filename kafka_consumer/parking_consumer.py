@@ -1,9 +1,12 @@
 from kafka import KafkaConsumer
 
 # To consume messages
-consumer = KafkaConsumer('parking_sensor_data',
+consumer = KafkaConsumer('parking_sensor_topic',
                          group_id='my_group',
                          bootstrap_servers=['ec2-52-3-61-194.compute-1.amazonaws.com:9092'])
+# consumer = KafkaConsumer('parking_sensor_data',
+#                          group_id='my_group',
+#                          bootstrap_servers=['ec2-52-3-61-194.compute-1.amazonaws.com:9092'])
 for message in consumer:
     # message value is raw byte string -- decode if necessary!
     # e.g., for unicode: `message.value.decode('utf-8')`

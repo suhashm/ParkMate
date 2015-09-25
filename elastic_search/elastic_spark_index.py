@@ -1,4 +1,4 @@
-"""Run using ./bin/spark-submit --packages org.apache.spark:spark-streaming-kafka_2.10:1.5.0 --master spark://<Hostname>:7077 examples/process_stream.py"""
+"""Run using ./bin/spark-submit --packages org.apache.spark:spark-streaming-kafka_2.10:1.5.0 --master spark://<Hostname>:7077 --executor-memory 4G examples/process_stream.py"""
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
@@ -54,9 +54,10 @@ def create_index(data):
 
 	return d
 
+# input is in this format "Fri Sep 25 2015 06:13:28 GMT+0000 (UTC)"
 def get_unix_time(ctime):
     time_list = ctime.split()
-    # ctime 'Tue Sep 15 15:16:58 2015'
+    # convert to unix ctime 'Tue Sep 15 15:16:58 2015'
 
     # convert to ctime - this is for hourly analysis and hence ignoring
     time_list = time_list[ :-2]
