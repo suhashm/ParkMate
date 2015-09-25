@@ -2,24 +2,17 @@
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
-import json, datetime, os
-#import index_cluster
+import json, datetime, os, time
 from elasticsearch import Elasticsearch
 
-def create_index(data):
-# connect to the elasticsearch instance
-    es = Elasticsearch("http://ec2-52-3-61-194.compute-1.amazonaws.com:9200")
 
-    # create index and mapping
-    INDEX_NAME = 'parktest'
+# check if an index is present or not in elasticsearch, if not present create index and mapping
+def check_create_index(es, INDEX_NAME):
     if not es.indices.exists(INDEX_NAME):
-        print("deleting index...")
-        #res = es.indices.delete(index = INDEX_NAME)
+        os.system('curl -X PUT ec2-52-3-61-194.compute-1.amazonaws.com:9200/'+INDEX_NAME+'/')
 
-        os.system('curl -X PUT ec2-52-3-61-194.compute-1.amazonaws.com:9200/parktest/')
-
-        bb= """curl -X PUT ec2-52-3-61-194.compute-1.amazonaws.com:9200/parktest/parktest/_mapping -d '{
-            "parktest": {
+        bb= """curl -X PUT ec2-52-3-61-194.compute-1.amazonaws.com:9200/+"""+INDEX_NAME+"""/"""+INDEX_NAME+"""/_mapping -d '{"""+
+            INDEX_NAME+""" : {
                 "properties": {
                     "location": {
                         "type": "geo_point",
@@ -31,12 +24,15 @@ def create_index(data):
         }'
         """
         os.system(bb)
-        # q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"100km","location":{"lat":46.884106,"lon":-71.377042}}}}}}'
-        # q = '{"query":{"match_all":{}},"script_fields":{"distance":{"params":{"lat":46.884106,"lon":-71.377042},"script":"doc[\u0027location\u0027].distanceInKm(lat,lon)"}},"filter":{"geo_distance":{"distance":"100km","location":{"lat":46.884106,"lon":-71.377042}}}}'
-        # q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"100km","location":{"lat":12.969773,"lon":77.597337}}}}}}'
-        # results = helpers.bulk(es, bulk_data1, index='geotest', doc_type='geotest', refresh=True)
-        # results = helpers.bulk(es, bulk_data1, index=INDEX_NAME, doc_type=INDEX_NAME, refresh=True)
-        d = {}
+
+# insert/update document based on its presence in the index
+def create_index(data):
+    # connect to the elasticsearch instance
+	es = Elasticsearch("http://ec2-52-3-61-194.compute-1.amazonaws.com:9200")
+
+	INDEX_NAME = 'parktest'
+
+   	d = {}
         d['time'] = data[0][0]
         d['garage_name'] = data[0][1]
         location = {}
@@ -44,7 +40,19 @@ def create_index(data):
         location['lon'] = data[0][3]
         d['location'] = location
         d['availability'] = data[1]
-        es.index(index=INDEX_NAME, doc_type=INDEX_NAME, body=d, refresh=True)
+
+    # get the details about the document with id = garage_name
+	res = es.get(index=INDEX_NAME, doc_type=INDEX_NAME, id=data[0][1], ignore=404)
+
+	#if the document with id do not exist, create it
+	if not res['found']:
+        	es.index(index=INDEX_NAME, doc_type=INDEX_NAME, id=data[0][1], body=d, refresh=True)
+	else:
+		#update the document
+		qq = '{"doc": { "availability":'+str(data[1])+'  }}'
+		es.update(index=INDEX_NAME, doc_type=INDEX_NAME,id=data[0][1], body=qq)
+
+	return d
 
 def get_unix_time(ctime):
     time_list = ctime.split()
@@ -97,9 +105,17 @@ kafkaStream.repartition(50)
 messages = kafkaStream.flatMap(lambda s: create_tuple(s[1])).reduceByKey(lambda a,b: (int(a)+int(b))/2)
 messages1 = messages.filter(lambda s: s[1] > 0)
 #messages.print()
+
+es = Elasticsearch("http://ec2-52-3-61-194.compute-1.amazonaws.com:9200")
+
+INDEX_NAME = 'parktest'
+
+# if index is not present, create it
+check_create_index(es, INDEX_NAME)
+time.sleep(2)
+
 m2 =messages1.map(lambda s: create_index(s))
-#m2 = messages1.map(lambda s: s)
-messages1.pprint()
+m2.pprint()
 
 ssc.start()             # Start the computation
 ssc.awaitTermination()  # Wait for the computation to terminate
