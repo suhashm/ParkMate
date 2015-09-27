@@ -4,6 +4,7 @@ from firebase import firebase
 import json, os, random, datetime, time
 from kafka_producer.parking_producer import parking_data_producer
 from kafka_producer.gps_producer import gps_data_producer
+from elasticsearch import Elasticsearch
 
 app = Flask(__name__)
 cors = CORS(app, allow_headers='Content-Type')
@@ -47,6 +48,21 @@ def get_parking_data():
 
     lines = json.dumps(result)
     parking_data_producer(lines)
+    return lines
+
+@app.route("/get_nearest_spot/<lat>/<lon>/", methods=['GET'])
+def get_nearest_spot(lat, lon):
+    d = {}
+    d['lat'] = lat
+    d['lon'] = lon
+    es = Elasticsearch("http://ec2-52-3-61-194.compute-1.amazonaws.com:9200")
+    INDEX_NAME = 'parktest'
+    # q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"1km","location":{"lat":37.787590,"lon":-122.400227}}}}}}'
+    q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"1km","location":{"lat":'+lat+',"lon":'+lon+'}}}}}}'
+    print "query is ", q
+    result = es.search(index = INDEX_NAME, size=10, body=q)
+    # result = d
+    lines = json.dumps(result['hits']['hits'])
     return lines
 
 @app.route("/save_parking_data", methods=['GET'])
