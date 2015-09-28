@@ -2,7 +2,9 @@
 ParkMe.factory('getParkingSpots', function($http,$rootScope){
     return{
         availableSpots: function(lat, lon){
-            $http.get('http://127.0.0.1:5000/get_nearest_spot/'+lat+'/'+lon+'/').success(function(data){
+            var numSpots = 20;
+//            $http.get('http://127.0.0.1:5000/get_nearest_spot/'+numSpots+'/'+lat+'/'+lon+'/').success(function(data){
+            $http.get('https://parakana.herokuapp.com/get_nearest_spot/'+numSpots+'/'+lat+'/'+lon+'/').success(function(data){
                 var spots = [];
                 for(var i =0; i < data.length; i++){
                     if(data[i]._source.availability != 0) {

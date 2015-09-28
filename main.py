@@ -50,15 +50,15 @@ def get_parking_data():
     parking_data_producer(lines)
     return lines
 
-@app.route("/get_nearest_spot/<lat>/<lon>/", methods=['GET'])
-def get_nearest_spot(lat, lon):
+@app.route("/get_nearest_spot/<spots>/<lat>/<lon>/", methods=['GET'])
+def get_nearest_spot(spots, lat, lon):
     d = {}
     d['lat'] = lat
     d['lon'] = lon
     es = Elasticsearch("http://ec2-52-3-61-194.compute-1.amazonaws.com:9200")
     INDEX_NAME = 'parktest'
     q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"0.5km","location":{"lat":'+lat+',"lon":'+lon+'}}}}}}'
-    result = es.search(index = INDEX_NAME, size=20, body=q)
+    result = es.search(index = INDEX_NAME, size=spots, body=q)
     lines = json.dumps(result['hits']['hits'])
     return lines
 
