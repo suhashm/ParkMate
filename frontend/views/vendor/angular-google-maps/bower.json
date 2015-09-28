@@ -1,0 +1,35 @@
+{
+  "name": "angular-google-maps",
+  "version": "2.2.1",
+  "main": "./dist/angular-google-maps.js",
+  "dependencies": {
+    "angular": "1.2 - 1.4",
+    "angular-simple-logger": "~0.0.1",
+    "lodash": ">=3.8.0"
+  },
+  "ignore": [
+    "*.json",
+    ".gitignore",
+    "travis.yml",
+    "*.html",
+    "package.js",
+    "*.markdown",
+    "example",
+    "src",
+    "grunt",
+    "website_libs",
+    "scripts",
+    "spec/coffee/directives",
+    "spec/coffee/providers",
+    "spec/coffee/usage",
+    "tmp"
+  ],
+  "devDependencies": {
+    "angular-mocks": "1.2 - 1.4",
+    "uuid": "http://github.com/LiosK/UUID.js/archive/v3.2.tar.gz",
+    "angular-route": "1.2 - 1.4",
+    "bootstrap-without-jquery": "git://github.com/tagawa/bootstrap-without-jquery.git",
+    "data-structures": "~1.4.2",
+    "OverlappingMarkerSpiderfier": "git://github.com/nmccready/OverlappingMarkerSpiderfier.git"
+  }
+}

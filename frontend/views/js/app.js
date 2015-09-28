@@ -5,7 +5,7 @@ $(".nav a").on("click", function(){
     $(this).parent().addClass("active");
 });
 
-var ParkMe = angular.module('ParkMe',['ngRoute', 'ngResource','ui.bootstrap']);
+var ParkMe = angular.module('ParkMe',['ngRoute', 'ngResource','ui.bootstrap', 'uiGmapgoogle-maps']);
 
 ParkMe.config(['$routeProvider', '$locationProvider',
     function($routeProvider, $locationProvider){

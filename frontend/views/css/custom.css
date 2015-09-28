@@ -11,3 +11,6 @@
 .active{
     font-weight: bold;
 }
+
+.angular-google-map-container { height: 600px; }
+

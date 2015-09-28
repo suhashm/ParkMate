@@ -4,7 +4,7 @@
     "authors": [
         "suhashm <suhas.hm109@gmail.com>"
     ],
-    "description": "\"NextToDo\"",
+    "description": "\"ParkMe\"",
     "dependencies": {
         "toastr": "latest",
         "jquery": "latest",
@@ -12,6 +12,7 @@
         "angular-resource": "latest",
         "angular-route": "latest",
         "bootstrap": "latest",
-        "angular-bootstrap": "latest"
+        "angular-bootstrap": "latest",
+        "angular-google-maps": "latest"
     }
 }
