@@ -1,41 +1,29 @@
-ParkMe.controller('realtimeController', function($scope, $http){
-
-    $scope.map = { center: { latitude: 37.788853, longitude: -122.400570 }, zoom: 14 };
+ParkMe.controller('realtimeController', function($scope, $rootScope, $http, getParkingSpots){
+    var initial_latitude = 37.78975175827529;
+    var initial_longitute = -122.39758738329999;
+    $scope.map = { center: { latitude: initial_latitude, longitude: initial_longitute}, zoom: 16 };
 
     $scope.marker = {
         id: 0,
         coords: {
-            latitude: 37.788853,
-            longitude: -122.400570
+            latitude: initial_latitude,
+            longitude: initial_longitute
+        },
+        options:{
+            icon:'../css/parking_marker.png'
         }
     };
 
-    $scope.randomMarkers = [];
-    var d = {
-        'id': 0,
-        'latitude': 37.688853,
-        'longitude': -122.300570,
-        'title': '<ul><li>first</li><li>second</li></ul>'
-
-    };
-    var e = {
-        'id': 1,
-        'latitude': 38.688853,
-        'longitude': -121.300570,
-        'title': '<ul><li>first</li><li>second</li></ul>'
-    };
-
-    $scope.randomMarkers.push(d);
-    $scope.randomMarkers.push(e);
-
+    $rootScope.randomMarkers = [];
+    getParkingSpots.availableSpots(initial_latitude, initial_longitute);
     $scope.circles = [
         {
             id: 1,
             center: {
-                latitude: 37.788853,
-                longitude: -122.400570
+                latitude: initial_latitude,
+                longitude: initial_longitute
             },
-            radius: 500,
+            radius: 450,
             stroke: {
                 color: '#08B21F',
                 weight: 2,
@@ -45,17 +33,19 @@ ParkMe.controller('realtimeController', function($scope, $http){
                 color: '#08B21F',
                 opacity: 0.5
             },
-            geodesic: true, // optional: defaults to false
-            draggable: true, // optional: defaults to false
-            clickable: true, // optional: defaults to true
-            editable: true, // optional: defaults to false
-            visible: true, // optional: defaults to true
+            geodesic: true,
+            draggable: true,
+            clickable: true,
+            editable: true,
+            visible: true,
             control: {},
             events: {
                 dragend: function (marker, eventName, args) {
+                    $rootScope.randomMarkers = [];
                     var lat = marker.getCenter().lat();
                     var lon = marker.getCenter().lng();
                     console.log(lat+", "+lon);
+                    getParkingSpots.availableSpots(lat, lon);
                 }
             }
         }

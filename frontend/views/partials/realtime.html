@@ -2,10 +2,10 @@
 
     <ui-gmap-google-map center='map.center' zoom='map.zoom'>
 
-        <ui-gmap-marker idKey='marker.id' coords='marker.coords'>
-        </ui-gmap-marker>
+        <!--<ui-gmap-marker idKey='marker.id' coords='marker.coords'  options="marker.options">-->
+        <!--</ui-gmap-marker>-->
 
-        <ui-gmap-markers models="randomMarkers" coords="'self'" icon="'icon'">
+        <ui-gmap-markers models="randomMarkers" coords="'self'" icon="'icon'" options="marker.options">
             <ui-gmap-windows show="show">
                 <div ng-non-bindable>{{title}}</div>
             </ui-gmap-windows>

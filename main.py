@@ -57,11 +57,8 @@ def get_nearest_spot(lat, lon):
     d['lon'] = lon
     es = Elasticsearch("http://ec2-52-3-61-194.compute-1.amazonaws.com:9200")
     INDEX_NAME = 'parktest'
-    # q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"1km","location":{"lat":37.787590,"lon":-122.400227}}}}}}'
-    q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"1km","location":{"lat":'+lat+',"lon":'+lon+'}}}}}}'
-    print "query is ", q
-    result = es.search(index = INDEX_NAME, size=10, body=q)
-    # result = d
+    q = '{"query":{"filtered":{"query":{"match_all":{}},"filter":{"geo_distance":{"distance":"0.5km","location":{"lat":'+lat+',"lon":'+lon+'}}}}}}'
+    result = es.search(index = INDEX_NAME, size=20, body=q)
     lines = json.dumps(result['hits']['hits'])
     return lines
 
@@ -69,7 +66,7 @@ def get_nearest_spot(lat, lon):
 def save_parking_data():
     firebase1 = firebase.FirebaseApplication('https://publicdata-parking.firebaseio.com', None)
     result = firebase1.get('/', None)
-    with open('d2.txt','w') as f:
+    with open('d2.txt', 'w') as f:
         f.write(json.dumps(result))
     f.close()
     return json.dumps(result)
