@@ -14,3 +14,6 @@
 
 .angular-google-map-container { height: 600px; }
 
+div.tab.related-tab.selected{
+    display: none !important;
+}

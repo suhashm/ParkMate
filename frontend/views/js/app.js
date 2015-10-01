@@ -13,8 +13,11 @@ ParkMe.config(['$routeProvider', '$locationProvider',
             .when('/',{
                 templateUrl: '../partials/realtime.html'
             })
-            .when('/batch',{
-                templateUrl: '../partials/batch.html'
+            .when('/batch-hourly',{
+                templateUrl: '../partials/batch_hourly.html'
+            })
+            .when('/batch-daily',{
+                templateUrl: '../partials/batch_daily.html'
             })
             .when('/stack',{
                 templateUrl: '../partials/tech_stack.html'

@@ -1,0 +1,24 @@
+<div class="container" ng-controller="batchHourlyController">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <select class="form-control"  ng-model="dayValue">
+                    <option value="20150926">2015-09-26</option>
+                    <option value="20150927">2015-09-27</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <select class="form-control" ng-model="spotName">
+                    <option ng-repeat="val in options_values" value="{{val}}">{{val}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <button class="btn btn-primary" ng-click="getHourlyStats()">submit</button>
+            </div>
+        </div>
+    </div>
+</div>

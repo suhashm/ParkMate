@@ -28,7 +28,8 @@ def create_tuple(r):
     if '_geofire' in garages:
         garages.pop('_geofire')
     for i in garages:
-        res.append(((int(formatted_time), i.replace(" ","_").lower()), garages[i]['open_spaces']))
+        # add lat lon information to tuple
+        res.append(((int(formatted_time), i.replace(" ","_").lower(), garages[i]['points'][0], garages[i]['points'][1]), garages[i]['open_spaces']))
 
     streets = data['san_francisco']['streets']
 
@@ -38,33 +39,37 @@ def create_tuple(r):
 
     for i in streets:
         if streets[i]['open_spaces'] != 'Unknown':
-            res.append(((int(formatted_time), i.replace(" ","_").lower()), streets[i]['open_spaces']))
+            res.append(((int(formatted_time), i.replace(" ","_").lower(), streets[i]['points'][0], streets[i]['points'][1]), streets[i]['open_spaces']))
         else:
-            res.append(((int(formatted_time), i.replace(" ","_").lower()), 4))
+            # res.append(((int(formatted_time), i.replace(" ","_").lower()), 4))
+            res.append(((int(formatted_time), i.replace(" ","_").lower(), streets[i]['points'][0], streets[i]['points'][1]), 4))
 
     return res
 
 def main():
-    conf = SparkConf().setAppName("average_parking_availability_hourly")
+    conf = SparkConf().setAppName("average_parking_availability_daily")
     sc = SparkContext(conf=conf)
 
     # read data from HDFS
     # parking_json = sc.textFile("hdfs://ec2-52-3-61-194.compute-1.amazonaws.com:9000/user/parking_data/history/hdfs_parking_sensor_topic_20150928183620.dat",100)
     parking_json = sc.textFile("hdfs://ec2-52-3-61-194.compute-1.amazonaws.com:9000/user/parking_data/history/hdfs_parking_sensor_topic_20150928185*",150)
+    # parking_json = sc.textFile("hdfs://ec2-52-3-61-194.compute-1.amazonaws.com:9000/user/parking_data/history/hdfs_parking_sensor_topic_20150928183620.dat",150)
 
     # get the average availability for a parking spot
     # formatted_data = parking_json.flatMap(lambda s: create_tuple(s)).reduceByKey(lambda a,b: (int(a)+int(b))/2)
     formatted_data = parking_json.flatMap(lambda s: create_tuple(s)).filter(lambda s: str(s[1]) !='Unknown').reduceByKey(lambda a,b: (int(a)+int(b))/2)
 
-    # convert it to cassandra hourly average schema type
-    to_db = formatted_data.map(lambda s: (s[0][0],s[0][1],str(s[1])))
+    # convert it to cassandra hourly average schema type (event_time, spot_name, availability, lat, lon)
+    to_db = formatted_data.map(lambda s: (s[0][0],s[0][1], str(s[1]), str(s[0][2]), str(s[0][3])))
 
-    to_db = to_db.filter(lambda s: s[2] != 'Unknown')
+    to_db = to_db.filter(lambda s: s[4] != 'Unknown')
 
     # write the data to cassandra
-    to_db.saveToCassandra("parking", "hourly_aggregate",) # save RDD to cassandra
+    to_db.saveToCassandra("parking", "daily_location_aggregate",) # save RDD to cassandra
 
     print to_db.take(10)
 
 if __name__ == '__main__':
     main()
+
+

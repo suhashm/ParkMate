@@ -3,13 +3,16 @@ from flask.ext.cors import CORS
 from firebase import firebase
 import json, os, random, datetime, time
 from kafka_producer.parking_producer import parking_data_producer
-from kafka_producer.gps_producer import gps_data_producer
 from elasticsearch import Elasticsearch
+from cassandra.cluster import Cluster
+cluster = Cluster(['52.20.47.196'])
+# cluster = Cluster(['52.3.61.194'])
+session = cluster.connect('parking')
 
 app = Flask(__name__)
 cors = CORS(app, allow_headers='Content-Type')
 
-def conver_to_unix_time(ctime):
+def convert_to_unix_time(ctime):
     time_list = ctime.split()
     # convert to unix ctime 'Tue Sep 15 15:16:58 2015'
 
@@ -44,7 +47,7 @@ def get_parking_data():
         streets[i]['points'] = streets[i]['points'][:2]
 
     # create timestamp YYYYMMDD-HHmmss
-    result['san_francisco']['_updated'] = conver_to_unix_time(result['san_francisco']['_updated'])
+    result['san_francisco']['_updated'] = convert_to_unix_time(result['san_francisco']['_updated'])
 
     lines = json.dumps(result)
     parking_data_producer(lines)
@@ -61,6 +64,43 @@ def get_nearest_spot(spots, lat, lon):
     result = es.search(index = INDEX_NAME, size=spots, body=q)
     lines = json.dumps(result['hits']['hits'])
     return lines
+
+@app.route('/get_availability_hourly/<date>/<spot_name>')
+def get_availability_hourly(date, spot_name):
+        print "date is "+date+" spot name is "+spot_name
+        # stmt = "SELECT * FROM hourly_aggregate WHERE event_time in (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) AND spot_name=%s"
+        stmt = "SELECT * FROM hourly_aggregate WHERE event_time in (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        # response = session.execute(stmt, parameters=[date+'00' ,date+'01' ,date+'02' ,date+'03' ,date+'04' ,date+'05' ,date+'06' ,date+'07' ,date+'08' ,date+'09' ,date+'10' ,date+'11' , date+'12' ,date+'13' ,date+'14' ,date+'15' ,date+'16' ,date+'17' ,date+'18' ,date+'19' ,date+'20' ,date+'21' ,date+'22' ,date+'23', spot_name])
+        response = session.execute(stmt, parameters=[date+'00' ,date+'01' ,date+'02' ,date+'03' ,date+'04' ,date+'05' ,date+'06' ,date+'07' ,date+'08' ,date+'09' ,date+'10' ,date+'11' , date+'12' ,date+'13' ,date+'14' ,date+'15' ,date+'16' ,date+'17' ,date+'18' ,date+'19' ,date+'20' ,date+'21' ,date+'22' ,date+'23'])
+        response_list = []
+        for val in response:
+             response_list.append(val)
+        jsonresponse = [{"timestamp": x.event_time, "spot_name": x.spot_name, "Availability": x.availability} for x in response_list]
+        return jsonify(result=jsonresponse)
+
+
+@app.route('/get_availability_daily/<date>')
+def get_availability_daily(date):
+        # print "date"
+        stmt = "SELECT * FROM daily_location_aggregate WHERE event_time=%s"
+        response = session.execute(stmt, parameters=[date])
+        # print response
+        response_list = []
+        for val in response:
+             response_list.append(val)
+        jsonresponse = [{"timestamp": x.event_time, "spot_name": x.spot_name, "lat": x.lat, "lon": x.lon, "Availability": x.availability} for x in response_list]
+        return jsonify(result=jsonresponse)
+
+
+@app.route('/get_spot_names/')
+def get_spot_names():
+        date = '20150926'
+        stmt = "SELECT spot_name FROM daily_aggregate WHERE event_time=%s"
+        response = session.execute(stmt, parameters=[date])
+        d = {}
+        d['result'] = response
+        return json.dumps(d)
+
 
 @app.route("/save_parking_data", methods=['GET'])
 def save_parking_data():

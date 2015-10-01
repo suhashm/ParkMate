@@ -1,0 +1,32 @@
+<div class="container" ng-controller="batchDailyController">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <select class="form-control" ng-model="dayValue">
+                    <option value="20150926">2015-09-26</option>
+                    <option value="20150927">2015-09-27</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="form-group">
+                <button class="btn btn-primary" ng-click="getDailyStats()">submit</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" ng-show="displayDailyStats">
+        <ui-gmap-google-map center='map.center' zoom='map.zoom'>
+
+
+            <ui-gmap-markers models="dailyMarkers" coords="'self'" icon="'icon'" options="marker.options">
+                <ui-gmap-windows show="show">
+                    <div ng-non-bindable>{{title}}</div>
+                </ui-gmap-windows>
+            </ui-gmap-markers>
+
+
+        </ui-gmap-google-map>
+    </div>
+
+</div>
