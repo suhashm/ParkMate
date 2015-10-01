@@ -1,3 +1,4 @@
 frontend/.idea/*
 *.pyc
 DS_Store
+.idea
