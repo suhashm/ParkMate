@@ -2,11 +2,9 @@
 
 from pyspark import SparkContext, SparkConf
 import json
-import datetime
-import pyspark_cassandra
 
-# write to cassandra in map function of an RDD
 def write_to_cassandra(input):
+    """write the input to cassandra """
     from cassandra.cluster import Cluster
     cluster = Cluster(['52.20.47.196'])
     session = cluster.connect('parking')
@@ -14,13 +12,15 @@ def write_to_cassandra(input):
     session.execute(stmt, parameters=[str(input[0][0]), input[0][1], str(input[1])])
     return input[0][1]
 
-# get daily timestamp for the given time in the raw data
+
 def get_unix_time_hourly(ctime):
+    """get YYYMMDD information from a given date"""
     time_list = ctime.split('-')
     return time_list[0]
 
-# create tuple of the form ((timestamp, parking_spot_name), availability)
+
 def create_tuple(r):
+    """create tuple of the form ((timestamp, parking_spot_name), availability)"""
     data = json.loads(r)
     res = []
     formatted_time = get_unix_time_hourly(data['san_francisco']['_updated'])
@@ -41,7 +41,6 @@ def create_tuple(r):
         if streets[i]['open_spaces'] != 'Unknown':
             res.append(((int(formatted_time), i.replace(" ","_").lower(), streets[i]['points'][0], streets[i]['points'][1]), streets[i]['open_spaces']))
         else:
-            # res.append(((int(formatted_time), i.replace(" ","_").lower()), 4))
             res.append(((int(formatted_time), i.replace(" ","_").lower(), streets[i]['points'][0], streets[i]['points'][1]), 4))
 
     return res
@@ -51,12 +50,9 @@ def main():
     sc = SparkContext(conf=conf)
 
     # read data from HDFS
-    # parking_json = sc.textFile("hdfs://ec2-52-3-61-194.compute-1.amazonaws.com:9000/user/parking_data/history/hdfs_parking_sensor_topic_20150928183620.dat",100)
     parking_json = sc.textFile("hdfs://ec2-52-3-61-194.compute-1.amazonaws.com:9000/user/parking_data/history/hdfs_parking_sensor_topic_20150928185*",150)
-    # parking_json = sc.textFile("hdfs://ec2-52-3-61-194.compute-1.amazonaws.com:9000/user/parking_data/history/hdfs_parking_sensor_topic_20150928183620.dat",150)
 
     # get the average availability for a parking spot
-    # formatted_data = parking_json.flatMap(lambda s: create_tuple(s)).reduceByKey(lambda a,b: (int(a)+int(b))/2)
     formatted_data = parking_json.flatMap(lambda s: create_tuple(s)).filter(lambda s: str(s[1]) !='Unknown').reduceByKey(lambda a,b: (int(a)+int(b))/2)
 
     # convert it to cassandra hourly average schema type (event_time, spot_name, availability, lat, lon)

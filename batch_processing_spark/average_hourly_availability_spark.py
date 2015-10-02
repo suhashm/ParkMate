@@ -2,11 +2,10 @@
 
 from pyspark import SparkContext, SparkConf
 import json
-import datetime
-import pyspark_cassandra
 
-# write to cassandra in map function of an RDD
+
 def write_to_cassandra(input):
+    """write the input to cassandra """
     from cassandra.cluster import Cluster
     cluster = Cluster(['52.20.47.196'])
     session = cluster.connect('parking')
@@ -14,15 +13,16 @@ def write_to_cassandra(input):
     session.execute(stmt, parameters=[str(input[0][0]), input[0][1], str(input[1])])
     return input[0][1]
 
-# get hourly timestamp for the given time in the raw data
+
 def get_unix_time_hourly(ctime):
+    """get YYYMMDDHH information from a given date"""
     time_list = ctime.split('-')
-    formatted_time = ""
     formatted_time = time_list[0]+time_list[1][:2]
     return formatted_time
 
-# create tuple of the form ((timestamp, parking_spot_name), availability)
+
 def create_tuple(r):
+    """create tuple of the form ((timestamp, parking_spot_name), availability)"""
     data = json.loads(r)
     res = []
     formatted_time = get_unix_time_hourly(data['san_francisco']['_updated'])

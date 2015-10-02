@@ -6,10 +6,8 @@ from pyspark.streaming.kafka import KafkaUtils
 import json, datetime
 
 def get_unix_time(ctime):
+    """get YYYMMDDHH information from a given date"""
     time_list = ctime.split()
-    # ctime 'Tue Sep 15 15:16:58 2015'
-
-    # convert to ctime
     time_list = time_list[ :-2]
 
     temp = time_list[-1]
@@ -23,6 +21,7 @@ def get_unix_time(ctime):
     return formatted_time
 
 def create_tuple(r):
+    """create tuple of the form ((timestamp, parking_spot_name, lat , lon), availability)"""
     data = json.loads(r)
     res = []
     formatted_time = get_unix_time(data['san_francisco']['_updated'])
@@ -40,23 +39,23 @@ def create_tuple(r):
 
     for i in streets:
         res.append(((int(formatted_time), i.replace(" ","_").lower()), streets[i]['open_spaces']))
-        # streets[i]['open_spaces'] = random.randint(0,5)
-        # streets[i]['points'] = streets[i]['points'][:2]
 
     return res
 
-# Create a local StreamingContext with two working thread and batch interval of 5 second
-sc = SparkContext("spark://ip-172-31-29-29:7077", "MyKafkaStream")
-#ssc = StreamingContext(sc, 1)
 
-# stream interval of 5 seconds
-ssc = StreamingContext(sc, 5)
-kafkaStream = KafkaUtils.createStream(ssc, "52.3.61.194:2181", "GroupNameDoesntMatter", {"parking_sensor_data": 2})
-#messages = kafkaStream.map(lambda xs:xs)
-messages = kafkaStream.flatMap(lambda s: create_tuple(s[1])).reduceByKey(lambda a,b: (int(a)+int(b))/2)
-messages1 = messages.filter(lambda s: s[1] > 0)
-#messages.print()
-messages1.pprint()
+def main():
+    # Create a local StreamingContext with two working thread and batch interval of 5 second
+    sc = SparkContext("spark://ip-172-31-29-29:7077", "MyKafkaStream")
 
-ssc.start()             # Start the computation
-ssc.awaitTermination()  # Wait for the computation to terminate
+    # stream interval of 5 seconds
+    ssc = StreamingContext(sc, 5)
+    kafkaStream = KafkaUtils.createStream(ssc, "52.3.61.194:2181", "GroupNameDoesntMatter", {"parking_sensor_data": 2})
+    messages = kafkaStream.flatMap(lambda s: create_tuple(s[1])).reduceByKey(lambda a,b: (int(a)+int(b))/2)
+    messages1 = messages.filter(lambda s: s[1] > 0)
+    messages1.pprint()
+
+    ssc.start()             # Start the computation
+    ssc.awaitTermination()  # Wait for the computation to terminate
+
+if __name__ == '__main__':
+    main()

@@ -3,6 +3,8 @@
 
 ## Real-time parking spot recommendation engine
 Demo - [www.parkmate.xyz](http://parkmate.xyz)
+
+
 [Slides](http://www.slideshare.net/suhashm/parkme-real-time-parking-spot-recommender)
 
 # What is ParkMate? 
@@ -24,6 +26,8 @@ ParkMate is a real time parking spot recommender, which ingests real-time parkin
 	 - Elasticsearch (geo-spatial queries)
  - UI
 	 - Flask with Highcharts, Bootstrap and AngularJS
+ - Hosting
+     - AWS EC2, Heroku
 
 
 ![ParkMate real-time demo] (images/parkmate_realtime.png)
