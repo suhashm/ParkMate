@@ -3,7 +3,6 @@ ParkMe.factory('getParkingSpots', function($http,$rootScope){
     return{
         availableSpots: function(lat, lon){
             var numSpots = 20;
-//            $http.get('http://127.0.0.1:5000/get_nearest_spot/'+numSpots+'/'+lat+'/'+lon+'/').success(function(data){
             $http.get('https://parakana.herokuapp.com/get_nearest_spot/'+numSpots+'/'+lat+'/'+lon+'/').success(function(data){
                 var spots = [];
                 for(var i =0; i < data.length; i++){
@@ -25,11 +24,7 @@ ParkMe.factory('getParkingSpots', function($http,$rootScope){
             });
         },
         getDailyAggregate: function(date){
-            console.log("date is "+date);
-//            $http.get('http://localhost:5000/get_availability_daily/'+date).success(function(data){
             $http.get('http://parakana.herokuapp.com/get_availability_daily/'+date).success(function(data){
-                console.log(data);
-                console.log("length is "+data.result.length);
                 var spots = [];
                 for(var i =0; i < data.result.length; i++){
                         var d = {};
@@ -51,8 +46,7 @@ ParkMe.factory('getParkingSpots', function($http,$rootScope){
         },
         getHourlyAggregate: function(date, spot_name){
             console.log("date is "+date+" spot name is "+spot_name);
-            $http.get('http://localhost:5000/get_availability_hourly/'+date+'/'+spot_name).success(function(data){
-//            $http.get('http://parakana.herokuapp.com/get_availability_hourly/'+date+'/'+spot_name).success(function(data){
+            $http.get('http://parakana.herokuapp.com/get_availability_hourly/'+date+'/'+spot_name).success(function(data){
                 var spots = [];
                 console.log(data);
                 console.log("length is "+data.result.length);
