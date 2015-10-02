@@ -13,7 +13,13 @@
 }
 
 .angular-google-map-container { height: 600px; }
+/*.angular-google-map-container { height: 100%; }*/
 
 div.tab.related-tab.selected{
     display: none !important;
 }
+
+/*body, html {*/
+    /*height: 100%;*/
+    /*width: 100%;*/
+/*}*/
