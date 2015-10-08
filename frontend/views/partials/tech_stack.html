@@ -1,5 +1,134 @@
 <div class="container">
-    <!--<iframe src="http://www.slideshare.net/suhashm/slideshelf" width="760px" height="570px" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:none;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe>-->
-    <!--<iframe src="//www.slideshare.net/slideshow/embed_code/key/eFr54HsfyugLWG" width="100%" height="555" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>-->
+
+    <!--<iframe src="//www.slideshare.net/slideshow/embed_code/key/eFr54HsfyugLWG" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>-->
+    <div class="col-md-6">
+        <h1><a id="What_is_ParkMate_9"></a>What is ParkMate?</h1>
+        <p>ParkMate is a real time parking spot recommender, which ingests real-time parking sensor data and recommends nearby parking spot to the user based on the availability for San Francisco City. The interface also provides historical analytics to visualize the parking trends on a daily and hourly basis.</p>
+        <p><a href="https://www.youtube.com/watch?v=_282VADirLI" target="_blank">Video Demo</a></p>
+        <h1><a id="Technologies_Used_13"></a>Technologies Used</h1>
+        <ul>
+            <li>Data Source
+                <ul>
+                    <li>Firebase - Real-time parking sensor data of San Francisco city from <a href="http://SFPark.org">SFPark.org</a></li>
+                </ul>
+            </li>
+            <li>Ingestion
+                <ul>
+                    <li>Apache Kafka</li>
+                </ul>
+            </li>
+            <li>Batch Processing
+                <ul>
+                    <li>Apache Spark</li>
+                    <li>Hadoop - HDFS</li>
+                </ul>
+            </li>
+            <li>Stream Processing
+                <ul>
+                    <li>Spark Streaming</li>
+                </ul>
+            </li>
+            <li>Storage
+                <ul>
+                    <li>Apache Cassandra (time-series analysis)</li>
+                    <li>Elasticsearch (geo-spatial queries)</li>
+                </ul>
+            </li>
+            <li>UI
+                <ul>
+                    <li>Flask with Highcharts, Bootstrap and AngularJS</li>
+                </ul>
+            </li>
+            <li>Hosting
+                <ul>
+                    <li>AWS EC2, Heroku</li>
+                </ul>
+            </li>
+        </ul>
+        <p>![ParkMate real-time demo] (images/parkmate_realtime.png)
+            ![ParkMate hourly-trend demo] (images/parkmate_hourly.png)
+            ![ParkMate daily demo] (images/parkmate_daily.png)</p>
+        <h1><a id="ParkMate_Approach_36"></a>ParkMate Approach</h1>
+        <p>ParkMate ingests real-time parking sensor data every 2 seconds, which are processed in the real-time and batch component for real-time parking spot recommendation along with historical hourly and daily parking trend analysis</p>
+        <p>![ParkMate Pipeline] (images/parkmate_pipeline.png)</p>
+        <h2><a id="Data_Source_41"></a>Data Source</h2>
+        <ul>
+            <li>Firebase - real-time parking sensor data from <a href="http://SFpark.org">SFpark.org</a></li>
+            <li>Total of 952 Parking Spots (15 garages and 937 street parking) data are ingested every 2 seconds.</li>
+            <li>Data throughput ~15 GB/day</li>
+        </ul>
+        <p>JSON message fields:</p>
+        <ul>
+            <li>timestamp [year month day hour minute second]: time when parking sensor data is generated</li>
+            <li>friendlyName : Name of the parking spot (Ex: 15th Street (1500-1598))</li>
+            <li>open_spaces: Integer representing number of available spots</li>
+            <li>points [lat, lon]: geographic co-ordinates of the parking spot</li>
+        </ul>
+        <h2><a id="Data_Ingestion_54"></a>Data Ingestion</h2>
+        <p>JSON messages were consumed from firebase and put into Kafka queue  using the kafka-python package from <a href="https://github.com/mumrah/kafka-python.git">https://github.com/mumrah/kafka-python.git</a>. Messages were published to a single topic with Spark Streaming and HDFS acting as consumers.</p>
+        <h2><a id="Batch_Processing_57"></a>Batch Processing</h2>
+        <p>Two batch processes were performed for historical batch views:</p>
+        <ul>
+            <li>
+                <p>Analyze parking trends on a hourly granularity</p>
+                <ul>
+                    <li>Given a date and parking spot name, show the variation of spot availability over the course of the day</li>
+                </ul>
+            </li>
+            <li>
+                <p>Analyze parking trends on a daily granularity</p>
+                <ul>
+                    <li>Given a date, visualize the average availability of the parking spot at the end of the day</li>
+                </ul>
+            </li>
+        </ul>
+        <p>Batch processing is done on data stored in HDFS and the Batch views were directly written into cassandra with the spark-cassandra connector</p>
+        <h2><a id="Realtime_Processing_68"></a>Real-time Processing</h2>
+        <p>Messages streamed into Spark Streaming with the spark-kafka connector.
+            Real-time views were directly written into Elasticsearch in a Map-Reduce fashion.
+            Depending on the user’s location, the parking availability information is constantly updated from Spark Streaming process and utilizing Elasticsearch’s geo-spatial query functionality.</p>
+        <h2><a id="Cassandra_Schema_73"></a>Cassandra Schema</h2>
+        <p>Tables:</p>
+        <ol>
+            <li>hourly_location_aggregate: table populated by Spark (batch) representing average hourly parking spot availability information</li>
+            <li>daily_location_aggregate: table populated by Spark (batch) representing average daily parking spot availability information along with individual spot location information</li>
+        </ol>
+<pre><code><span class="hljs-operator"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> hourly_location_aggregate (event_time <span class="hljs-keyword">timestamp</span>, spot_name <span class="hljs-built_in">text</span>, <span class="hljs-keyword">availability</span> <span class="hljs-built_in">int</span>, PRIMARY <span class="hljs-keyword">KEY</span> ( (event_time, spot_name) ) );</span>
+    <span class="hljs-operator"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> daily_location_aggregate (event_time <span class="hljs-keyword">timestamp</span>, spot_name <span class="hljs-built_in">text</span>, <span class="hljs-keyword">availability</span> <span class="hljs-built_in">int</span>, lat <span class="hljs-built_in">int</span>, lon <span class="hljs-built_in">int</span> PRIMARY <span class="hljs-keyword">KEY</span> ( (event_time, spot_name) ) );</span>
+</code></pre>
+        <h2><a id="Elasticsearch_mapping_82"></a>Elasticsearch mapping</h2>
+<pre><code class="language-json"> "ParkMate": {
+    "properties": {
+    "location": {
+    "type": "geo_point",
+    "lat_lon": true,
+    "geohash": true
+    }
+    }
+    }
+
+</code></pre>
+        <h2><a id="API_calls_95"></a>API calls</h2>
+        <p>Data in JSON format can be displayed in the browser by calling the following endpoints</p>
+        <ul>
+            <li>get_nearest_spot/[spots]/[lat]/[lon]/
+                <ul>
+                    <li>retrieve number of parking spots (spots) within 1 mile radius of given lat and lon</li>
+                </ul>
+            </li>
+            <li>/get_availability_hourly/[date]/[spot_name]
+                <ul>
+                    <li>retrieve hourly parking trend for the given date and spot name</li>
+                </ul>
+            </li>
+            <li>/get_availability_daily/[date]
+                <ul>
+                    <li>retrieve daily parking trends for all the spots for a given date</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-6">
     <iframe src="//www.slideshare.net/slideshow/embed_code/key/eFr54HsfyugLWG" width="595" height="485" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe>
+    </div>
 </div>

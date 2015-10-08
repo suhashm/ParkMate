@@ -9,6 +9,7 @@ ParkMe.controller('realtimeController', function($scope, $rootScope, $http, getP
             latitude: initial_latitude,
             longitude: initial_longitute
         },
+
         options:{
             icon:'../css/parking_marker.png'
         }
