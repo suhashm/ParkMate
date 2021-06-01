@@ -4,7 +4,7 @@ Flask-Cors==1.10.3
 python-firebase==1.2
 requests==2.5.1
 requests-oauthlib==0.5.0
-urllib3==1.10.2
+urllib3==1.26.5
 virtualenv==1.11.6
 kafka-python==0.9.4
 cassandra-driver==2.7.2
